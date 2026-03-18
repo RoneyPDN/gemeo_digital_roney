@@ -1,0 +1,30 @@
+# Environments
+.env
+.env.*
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+backend/data/*.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS Files
+.DS_Store
+Thumbs.db
