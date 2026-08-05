@@ -1,52 +1,109 @@
-# Projeto: O Gêmeo Digital do Roney 🤖
+# Gêmeo Digital do Roney
 
-Este é um projeto de demonstração para processo seletivo de **AI Engineer Senior**. Ele exemplifica a construção de um Agente Baseado em LLM utilizando RAG e Tool Use através de código limpo e bibliotecas consolidadas.
+> Assistente conversacional de portfólio com FastAPI, Streamlit, contexto profissional local e tool use via Anthropic.
 
-## 🚀 Tecnologias Utilizadas
-- **Backend:** FastAPI, Python, Pydantic
-- **Frontend:** Streamlit
-- **Inteligência Artificial:** Claude 3.5 Sonnet (Anthropic API)
-- **Técnicas Empregadas:**
-  - **RAG (Retrieval-Augmented Generation):** Carregamento de contexto profissional a partir de arquivo local.
-  - **Function Calling (Tool Use):** O Agente é capaz de invocar ferramentas Python para recuperar dados dinâmicos (Ex: Resumo de Tech Stack, GitHub Info).
+## Visão geral
 
-## 📁 Estrutura do Projeto
+O projeto transforma um perfil profissional em uma experiência conversacional. O backend carrega `backend/data/roney_profile.md` no contexto do agente, expõe uma API tipada e executa ferramentas Python quando solicitadas pelo modelo. A interface Streamlit mantém o histórico da conversa e consome a API local.
+
+## Capacidades verificadas
+
+- API FastAPI com contratos Pydantic para mensagem, histórico e resposta;
+- interface Streamlit com histórico em `session_state`;
+- contexto profissional carregado de Markdown local;
+- integração direta com o SDK da Anthropic;
+- ciclo de `tool_use` com resumo de stack e status demonstrativo do GitHub;
+- tratamento explícito para chave ausente e base de conhecimento indisponível.
+
+> O arquivo profissional é inserido integralmente no prompt. Não há banco vetorial, chunking, embeddings ou busca por similaridade; portanto, este projeto demonstra grounding por contexto local, não RAG vetorial. A ferramenta de GitHub retorna dados demonstrativos definidos no código e não consulta a API pública.
+
+## Arquitetura
+
+```mermaid
+flowchart LR
+    U["Usuário"] --> UI["Streamlit"]
+    UI -->|POST /chat| API["FastAPI"]
+    API --> AG["Orquestrador"]
+    MD["roney_profile.md"] --> AG
+    AG --> LLM["Anthropic API"]
+    LLM -->|tool_use| T["Ferramentas Python"]
+    T --> AG
 ```
-gemeo_digital_roney/
-├── backend/
-│   ├── data/
-│   │   └── roney_profile.md
-│   ├── agent.py
-│   ├── main.py
-│   └── tools.py
-├── frontend/
-│   └── app.py
-├── .env.example
-├── README.md
-└── requirements.txt
+
+## Stack
+
+| Camada | Tecnologias |
+| --- | --- |
+| Backend | Python, FastAPI, Pydantic, Uvicorn |
+| Frontend | Streamlit, Requests |
+| IA | Anthropic SDK e tool use |
+| Configuração | `python-dotenv`, `ANTHROPIC_API_KEY` |
+
+## Estrutura
+
+```text
+backend/
+  data/roney_profile.md
+  agent.py
+  main.py
+  tools.py
+frontend/app.py
+requirements.txt
 ```
 
-## 🛠️ Como Executar
+## Como executar
 
-**1. Instale as dependências:**
+Pré-requisitos: Python 3.10+ e chave válida da Anthropic.
+
 ```bash
-pip install -r requirements.txt
+git clone https://github.com/RoneyPDN/gemeo_digital_roney.git
+cd gemeo_digital_roney
+python -m venv .venv
+python -m pip install -r requirements.txt
 ```
 
-**2. Configure a API Key:**
-Crie um arquivo `.env` na raiz do projeto copiando o `.env.example` e adicione sua chave de API da Anthropic.
-`ANTHROPIC_API_KEY=sua_chave`
+Crie `.env` local — nunca versione esse arquivo:
 
-**3. Inicie o Servidor Backend (FastAPI):**
-Abra um terminal na raiz do projeto e rode:
+```env
+ANTHROPIC_API_KEY=sua_chave_local
+```
+
+Em terminais separados:
+
 ```bash
-uvicorn backend.main:app --reload --port 8000
+python -m uvicorn backend.main:app --reload --port 8000
+python -m streamlit run frontend/app.py
 ```
-Isso fará a API rodar em `http://localhost:8000`.
 
-**4. Inicie o Frontend (Streamlit):**
-Abra um segundo terminal na raiz do projeto e rode:
-```bash
-streamlit run frontend/app.py
-```
-A interface web será aberta no seu navegador sem bloqueios, simulando uma interface de chat moderna semelhante ao ChatGPT/Gemini.
+- API: `http://localhost:8000`
+- OpenAPI: `http://localhost:8000/docs`
+- Streamlit: normalmente `http://localhost:8501`
+
+## API
+
+| Método | Rota | Finalidade |
+| --- | --- | --- |
+| `GET` | `/` | verificação simples da API |
+| `POST` | `/chat` | envia mensagem e histórico ao agente |
+
+## Limitações
+
+- Requer serviço externo da Anthropic e pode gerar custo.
+- O login da interface é uma verificação fixa no frontend; não é autenticação de produção.
+- Não há persistência, RBAC, auditoria ou telemetria de tokens/custo.
+- As tools têm conteúdo demonstrativo, não dados em tempo real.
+- Não foram encontrados testes automatizados ou configuração de deploy.
+- Confirme se o modelo definido no código está disponível para sua conta Anthropic.
+
+## Próximas evoluções
+
+- autenticação server-side e gestão segura de sessão;
+- testes de API e tool routing com provedor mockado;
+- telemetria de latência, tokens, custo e falhas;
+- versionamento de prompts e avaliações;
+- adapter real de GitHub, claramente identificado.
+
+## Status
+
+Projeto de demonstração local. Este README não afirma deploy público ou prontidão para produção.
+
